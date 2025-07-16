@@ -12,31 +12,9 @@ import DeleteConfirmationModal from "../../components/DeleteConfirmationModal";
 import Statistics from "../../components/Statistics";
 import SearchAndFilter from "../../components/SearchAndFilter";
 import TaskCard from "../../components/TaskCard";
-
-const LoadingSpinner = () => (
-  <div className="flex items-center justify-center min-h-[400px]">
-    <div className="text-center">
-      <div className="animate-spin rounded-full h-16 w-16 border-b-2 border-purple-500 mx-auto mb-4"></div>
-      <p className="text-gray-400 text-lg">Loading your tasks...</p>
-    </div>
-  </div>
-);
-
-const ErrorMessage = ({ error, onRetry }) => (
-  <div className="bg-red-900/20 border border-red-500 rounded-lg p-4 mb-6">
-    <div className="flex items-center space-x-2">
-      <AlertCircle className="w-5 h-5 text-red-400" />
-      <span className="text-red-300 font-medium">Error</span>
-    </div>
-    <p className="text-red-200 mt-2">{error}</p>
-    <button
-      onClick={onRetry}
-      className="mt-3 bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-lg text-sm transition-colors"
-    >
-      Try Again
-    </button>
-  </div>
-);
+import { toast } from "react-toastify";
+import ErrorMessage from "../../ui/ErrorMessage";
+import LoadingSpinner from "../../ui/LoadingSpinner";
 
 const TaskManagement = () => {
   const [searchTerm, setSearchTerm] = useState("");
@@ -90,6 +68,17 @@ const TaskManagement = () => {
 
     return () => clearTimeout(timeoutId);
   }, [searchTerm, filterStatus]);
+
+  // Show error toast when fetch fails
+  useEffect(() => {
+    if (fetchError) {
+      const errorMessage =
+        fetchError?.data?.message ||
+        fetchError?.message ||
+        "Failed to fetch tasks";
+      toast.error(errorMessage);
+    }
+  }, [fetchError]);
 
   const filteredTasks = useMemo(() => {
     return tasks.filter((task) => {
@@ -148,20 +137,27 @@ const TaskManagement = () => {
   const handleSubmitTask = async (formData) => {
     try {
       if (editingTask) {
-        await updateTaskMutation({
+        const response = await updateTaskMutation({
           path: `/task/update/${editingTask._id}`,
           body: formData,
         }).unwrap();
+
+        toast.success(response?.message || "Task updated successfully!");
       } else {
-        await createTaskMutation({
+        const response = await createTaskMutation({
           path: "/task/create",
           body: formData,
         }).unwrap();
+
+        toast.success(response?.message || "Task created successfully!");
       }
       refetchTasks();
       handleCloseModal();
     } catch (error) {
       console.error("Failed to save task:", error);
+      const errorMessage =
+        error?.data?.message || error?.message || "Failed to save task";
+      toast.error(errorMessage);
     }
   };
 
@@ -174,19 +170,32 @@ const TaskManagement = () => {
   const handleConfirmDelete = async () => {
     if (!taskToDelete) return;
     try {
-      await deleteTaskMutation({
+      const res = await deleteTaskMutation({
         path: `/task/delete/${taskToDelete._id}`,
       }).unwrap();
+
+      if (!res.error) {
+        toast.success(res.message || "Task deleted successfully!");
+      } else {
+        toast.error(res.message || "Failed to delete task");
+      }
+
       refetchTasks();
       handleCloseDeleteModal();
     } catch (error) {
       console.error("Failed to delete task:", error);
+      const errorMessage =
+        error?.data?.message || error?.message || "Failed to delete task";
+      toast.error(errorMessage);
     }
   };
 
   const handleToggleStatus = async (task) => {
     const newStatus = task.status === "completed" ? "pending" : "completed";
+    const statusText = newStatus === "completed" ? "completed" : "pending";
+
     try {
+      // Optimistic update
       setTasks((prevTasks) =>
         prevTasks.map((t) =>
           t._id === task._id ? { ...t, status: newStatus } : t
@@ -198,15 +207,29 @@ const TaskManagement = () => {
         body: { ...task, status: newStatus },
       }).unwrap();
 
+      toast.success(`Task marked as ${statusText}!`);
       refetchTasks();
     } catch (error) {
       console.error("Failed to update task status:", error);
+
+      // Revert optimistic update
       setTasks((prevTasks) =>
         prevTasks.map((t) =>
           t._id === task._id ? { ...t, status: task.status } : t
         )
       );
+
+      const errorMessage =
+        error?.data?.message ||
+        error?.message ||
+        "Failed to update task status";
+      toast.error(errorMessage);
     }
+  };
+
+  const handleRetry = () => {
+    toast.info("Retrying to fetch tasks...");
+    refetchTasks();
   };
 
   if (loading) {
@@ -225,7 +248,7 @@ const TaskManagement = () => {
         <div className="mb-6 sm:mb-8">
           <div className="flex flex-col gap-4">
             <div className="text-center sm:text-left">
-              <h1 className="text-xl sm:text-2xl lg:text-3xl font-bold text-white mb-2">
+              <h1 className="text-xl sm:text-2xl lg:text-3xl font-bold text-white mb-2 mt-">
                 Task Management System
               </h1>
               <p className="text-gray-300 text-base sm:text-md">
@@ -256,7 +279,7 @@ const TaskManagement = () => {
           </div>
         </div>
 
-        {error && <ErrorMessage error={error} onRetry={refetchTasks} />}
+        {error && <ErrorMessage error={error} onRetry={handleRetry} />}
 
         <SearchAndFilter
           searchTerm={searchTerm}
