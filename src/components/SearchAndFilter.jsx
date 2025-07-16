@@ -22,7 +22,7 @@ const SearchAndFilter = ({
       <select
         value={filterStatus}
         onChange={(e) => setFilterStatus(e.target.value)}
-        className="bg-slate-700 border border-slate-600 rounded-lg pl-10 pr-8 py-3 text-white focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all duration-200 appearance-none"
+        className="bg-slate-700 border border-slate-600 rounded-lg pl-10 pr-8 py-3 text-white focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all duration-200 appearance-none w-[100%]"
       >
         <option value="all">All Tasks</option>
         <option value="pending">Pending</option>

@@ -248,7 +248,7 @@ const TaskManagement = () => {
         <div className="mb-6 sm:mb-8">
           <div className="flex flex-col gap-4">
             <div className="text-center sm:text-left">
-              <h1 className="text-xl sm:text-2xl lg:text-3xl font-bold text-white mb-2 mt-">
+              <h1 className="text-xl sm:text-2xl lg:text-3xl font-bold text-white mb-2 mt-5">
                 Task Management System
               </h1>
               <p className="text-gray-300 text-base sm:text-md">
