@@ -1,6 +1,5 @@
 import { Droppable } from "@adaptabletools/react-beautiful-dnd";
 import TaskCard from "./TaskCard";
-
 const Column = ({
   title,
   status,
@@ -23,28 +22,35 @@ const Column = ({
         </div>
       </div>
     </div>
-
-    <Droppable droppableId={status} type="TASK" isDropDisabled={false}>
+    <Droppable droppableId={status} type="TASK">
       {(provided, snapshot) => (
         <div
           ref={provided.innerRef}
           {...provided.droppableProps}
-          className={`bg-gray-900/30 border-l border-r border-b border-gray-700 rounded-b-xl p-4 min-h-[70vh] backdrop-blur-sm transition-colors duration-200 ${
-            snapshot.isDraggingOver ? "bg-gray-800/40" : ""
+          className={`bg-gray-900/30 border-l border-r border-b border-gray-700 rounded-b-xl p-4 min-h-[70vh] backdrop-blur-sm transition-colors duration-200 relative overflow-hidden ${
+            snapshot.isDraggingOver
+              ? "bg-gray-800/40 ring-2 ring-purple-500/50"
+              : ""
           }`}
+          style={{
+            // Ensure the drop zone stays in place
+            position: "relative",
+            overflow: "visible",
+          }}
         >
-          {tasks.map((task, index) => (
-            <TaskCard
-              key={task._id}
-              task={task}
-              index={index}
-              onEdit={onEditTask}
-              onDelete={onDeleteTask}
-              onViewDetails={onViewDetails}
-            />
-          ))}
+          <div className="space-y-0">
+            {tasks.map((task, index) => (
+              <TaskCard
+                key={task._id}
+                task={task}
+                index={index}
+                onEdit={onEditTask}
+                onDelete={onDeleteTask}
+                onViewDetails={onViewDetails}
+              />
+            ))}
+          </div>
           {provided.placeholder}
-
           {tasks.length === 0 && (
             <div className="text-center py-16">
               <Icon className="w-16 h-16 text-gray-600 mx-auto mb-4 opacity-50" />
@@ -63,5 +69,4 @@ const Column = ({
     </Droppable>
   </div>
 );
-
 export default Column;
