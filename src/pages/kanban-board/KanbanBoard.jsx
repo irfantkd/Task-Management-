@@ -179,70 +179,57 @@ const KanbanBoard = () => {
       console.error("Failed to delete task:", error);
     }
   };
+  // Handle drag end - Same logic as your working project
   const handleDragEnd = async (result) => {
-    console.log("Drag result:", result);
-    if (!result.destination) return;
-    const { source, destination, draggableId } = result;
-    // If dropped in the same position, do nothing
+    const { source, destination } = result;
+    if (!destination) return;
     if (
       source.droppableId === destination.droppableId &&
       source.index === destination.index
     ) {
       return;
     }
-    const taskId = draggableId;
-    const sourceStatus = source.droppableId;
-    const destinationStatus = destination.droppableId;
-    // Get the task being dragged
-    const draggedTask = tasks.find((task) => task._id === taskId);
-    if (!draggedTask) {
-      console.error("Task not found:", taskId);
-      return;
+    // Create columns object similar to your working project
+    const columns = {
+      pending: pendingTasks,
+      completed: completedTasks,
+    };
+    const draggedTask = columns[source.droppableId][source.index];
+    const newSourceColumn = Array.from(columns[source.droppableId]);
+    newSourceColumn.splice(source.index, 1);
+    const newDestinationColumn = Array.from(columns[destination.droppableId]);
+    newDestinationColumn.splice(destination.index, 0, draggedTask);
+    // Only update status if moving between different columns
+    if (source.droppableId !== destination.droppableId) {
+      draggedTask.status = destination.droppableId;
     }
-    // Optimistically update the UI first
-    let newTasks = [...tasks];
-    if (sourceStatus === destinationStatus) {
-      // Reordering within the same column - no API call needed, just reorder
-      const columnTasks = tasks.filter((task) => task.status === sourceStatus);
-      const [movedTask] = columnTasks.splice(source.index, 1);
-      columnTasks.splice(destination.index, 0, movedTask);
-      // Update the tasks array with the new order
-      newTasks = newTasks.map((task) => {
-        if (task.status === sourceStatus) {
-          const index = columnTasks.findIndex((t) => t._id === task._id);
-          return index !== -1 ? columnTasks[index] : task;
-        }
-        return task;
-      });
-      // Update state immediately for smooth UX
-      setTasks(newTasks);
-      return; // Exit early - no API call needed for same column reordering
-    } else {
-      // Moving between different columns - API call needed
-      newTasks = newTasks.map((task) =>
-        task._id === taskId
-          ? {
-              ...task,
-              status: destinationStatus,
-              updatedAt: new Date().toISOString(),
-            }
-          : task
-      );
-      // Update state immediately for smooth UX
-      setTasks(newTasks);
+    // Update the tasks state to reflect the new arrangement
+    const newTasks = tasks.map((task) => {
+      if (task._id === draggedTask._id) {
+        return {
+          ...task,
+          status: destination.droppableId,
+        };
+      }
+      return task;
+    });
+    // Optimistically update the state
+    setTasks(newTasks);
+    // Only make API call if moving between different columns
+    if (source.droppableId !== destination.droppableId) {
       try {
         await updateTaskMutation({
-          path: `/task/update/${taskId}`,
+          path: `/task/update/${draggedTask._id}`,
           body: {
             ...draggedTask,
-            status: destinationStatus,
+            status: destination.droppableId,
           },
         }).unwrap();
-        // Refetch to ensure consistency with backend
+        // Refetch to ensure consistency
         refetchTasks();
       } catch (error) {
-        console.error("Failed to update task status:", error);
-        // Revert the optimistic update on error
+        console.error("There was an error updating the task status!", error);
+        // Revert on error
         refetchTasks();
       }
     }
