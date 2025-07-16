@@ -1,5 +1,5 @@
 import { useState, useEffect, useMemo } from "react";
-import { DragDropContext } from "react-beautiful-dnd";
+import { DragDropContext } from "@adaptabletools/react-beautiful-dnd";
 import { Plus, Clock, CheckCircle, AlertCircle } from "lucide-react";
 import {
   useGetQuery,

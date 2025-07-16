@@ -1,4 +1,4 @@
-import { Draggable } from "react-beautiful-dnd";
+import { Draggable } from "@adaptabletools/react-beautiful-dnd";
 import { Edit, Trash2, Eye } from "lucide-react";
 
 const TaskCard = ({ task, index, onEdit, onDelete, onViewDetails }) => (

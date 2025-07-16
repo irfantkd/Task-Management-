@@ -1,4 +1,4 @@
-import { Droppable } from "react-beautiful-dnd";
+import { Droppable } from "@adaptabletools/react-beautiful-dnd";
 import TaskCard from "./TaskCard";
 
 const Column = ({
