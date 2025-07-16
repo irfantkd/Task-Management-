@@ -1,6 +1,6 @@
-import React, { useState, useEffect, useMemo } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { DragDropContext } from "react-beautiful-dnd";
-import { Plus, Clock, CheckCircle, RefreshCw, AlertCircle } from "lucide-react";
+import { Plus, Clock, CheckCircle, AlertCircle } from "lucide-react";
 import {
   useGetQuery,
   usePostMutation,
@@ -201,17 +201,15 @@ const KanbanBoard = () => {
         path: `/task/delete/${taskToDelete._id}`,
       }).unwrap();
 
-      // Refetch tasks to get updated data
       refetchTasks();
       handleCloseDeleteModal();
     } catch (error) {
       console.error("Failed to delete task:", error);
-      // You might want to show a toast notification here
     }
   };
 
   const handleDragEnd = async (result) => {
-    console.log("Drag result:", result); // Debug log
+    console.log("Drag result:", result);
 
     if (!result.destination) return;
 
@@ -236,16 +234,13 @@ const KanbanBoard = () => {
       return;
     }
 
-    // Create new tasks array with optimistic update
     let newTasks = [...tasks];
 
     if (sourceStatus === destinationStatus) {
-      // Reordering within the same column
       const columnTasks = tasks.filter((task) => task.status === sourceStatus);
       const [movedTask] = columnTasks.splice(source.index, 1);
       columnTasks.splice(destination.index, 0, movedTask);
 
-      // Update the tasks array maintaining the order
       newTasks = newTasks.map((task) => {
         if (task.status === sourceStatus) {
           const index = columnTasks.findIndex((t) => t._id === task._id);
@@ -254,7 +249,6 @@ const KanbanBoard = () => {
         return task;
       });
     } else {
-      // Moving between different columns
       newTasks = newTasks.map((task) =>
         task._id === taskId
           ? {
@@ -266,11 +260,9 @@ const KanbanBoard = () => {
       );
     }
 
-    // Optimistically update the UI
     setTasks(newTasks);
 
     try {
-      // Update task status via API
       await updateTaskMutation({
         path: `/task/update/${taskId}`,
         body: {
@@ -279,16 +271,13 @@ const KanbanBoard = () => {
         },
       }).unwrap();
 
-      // Refetch tasks to ensure consistency
       refetchTasks();
     } catch (error) {
       console.error("Failed to update task status:", error);
-      // Revert optimistic update on error
       refetchTasks();
     }
   };
 
-  // Show loading spinner on initial load
   if (loading && tasks.length === 0) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900 p-4">
@@ -333,10 +322,8 @@ const KanbanBoard = () => {
           </div>
         </div>
 
-        {/* Error Message */}
         {error && <ErrorMessage error={error} onRetry={refetchTasks} />}
 
-        {/* Search and Filter */}
         <SearchAndFilter
           searchTerm={searchTerm}
           setSearchTerm={setSearchTerm}
@@ -344,7 +331,6 @@ const KanbanBoard = () => {
           setFilterStatus={setFilterStatus}
         />
 
-        {/* Loading overlay for operations */}
         {isUpdating && (
           <div className="fixed inset-0 bg-black/20 backdrop-blur-sm flex items-center justify-center z-40">
             <div className="bg-gray-800 border border-gray-700 rounded-lg p-4 flex items-center space-x-3">
@@ -354,7 +340,6 @@ const KanbanBoard = () => {
           </div>
         )}
 
-        {/* Kanban Board */}
         <DragDropContext onDragEnd={handleDragEnd}>
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
             <Column

@@ -24,7 +24,7 @@ const Column = ({
       </div>
     </div>
 
-    <Droppable droppableId={status} type="TASK">
+    <Droppable droppableId={status} type="TASK" isDropDisabled={false}>
       {(provided, snapshot) => (
         <div
           ref={provided.innerRef}
