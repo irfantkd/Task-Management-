@@ -1,107 +1,101 @@
-import { Draggable } from "@adaptabletools/react-beautiful-dnd";
-import { Edit, Trash2, Eye } from "lucide-react";
-const TaskCard = ({ task, index, onEdit, onDelete, onViewDetails }) => (
-  <Draggable draggableId={task._id} index={index}>
-    {(provided, snapshot) => (
-      <div
-        ref={provided.innerRef}
-        {...provided.draggableProps}
-        {...provided.dragHandleProps}
-        className={`bg-gray-800/60 border border-gray-700 rounded-xl p-4 mb-4 cursor-move hover:bg-gray-800/80 transition-all duration-200 transform hover:scale-[1.02] backdrop-blur-sm group ${
-          snapshot.isDragging
-            ? "shadow-xl rotate-2 z-50 !transform-none !left-auto !top-auto"
-            : ""
-        }`}
-        style={{
-          ...provided.draggableProps.style,
-          // Override the default transform behavior when dragging
-          ...(snapshot.isDragging && {
-            transform: provided.draggableProps.style?.transform || "none",
-            position: "fixed",
-            zIndex: 9999,
-            pointerEvents: "none",
-          }),
-        }}
-      >
-        <div className="flex items-start justify-between mb-3">
+import ToggleSwitch from "../ui/ToggleSwitch";
+import { Eye, Edit, Trash2 } from "lucide-react";
+
+const TaskCard = ({
+  task,
+  onEdit,
+  onDelete,
+  onViewDetails,
+  onToggleStatus,
+}) => (
+  <div className="bg-gray-800/60 border border-gray-700 rounded-xl p-4 sm:p-6 hover:bg-gray-800/80 transition-all duration-200 backdrop-blur-sm group">
+    <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-4">
+      {/* Task Content */}
+      <div className="flex-1 min-w-0">
+        <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-3 mb-3">
           <h3
-            className="text-white font-semibold text-sm leading-tight pr-2 line-clamp-2 cursor-pointer hover:text-purple-400 transition-colors duration-200"
-            onClick={(e) => {
-              // Prevent click when dragging
-              if (!snapshot.isDragging) {
-                onViewDetails(task._id);
-              }
-            }}
+            className="text-white font-semibold text-lg cursor-pointer hover:text-purple-400 transition-colors duration-200 truncate"
+            onClick={() => onViewDetails(task._id)}
           >
             {task.title}
           </h3>
-          <div className="flex items-center space-x-1 opacity-0 group-hover:opacity-100 transition-opacity duration-200">
-            <button
-              onClick={(e) => {
-                e.stopPropagation();
-                if (!snapshot.isDragging) {
-                  onViewDetails(task._id);
-                }
-              }}
-              className="text-gray-400 hover:text-green-400 p-1 rounded transition-colors duration-200"
-              title="View Details"
-            >
-              <Eye className="w-3 h-3" />
-            </button>
-            <button
-              onClick={(e) => {
-                e.stopPropagation();
-                if (!snapshot.isDragging) {
-                  onEdit(task);
-                }
-              }}
-              className="text-gray-400 hover:text-blue-400 p-1 rounded transition-colors duration-200"
-              title="Edit Task"
-            >
-              <Edit className="w-3 h-3" />
-            </button>
-            <button
-              onClick={(e) => {
-                e.stopPropagation();
-                if (!snapshot.isDragging) {
-                  onDelete(task._id);
-                }
-              }}
-              className="text-gray-400 hover:text-red-400 p-1 rounded transition-colors duration-200"
-              title="Delete Task"
-            >
-              <Trash2 className="w-3 h-3" />
-            </button>
-          </div>
+          <span
+            className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium w-fit ${
+              task.status === "completed"
+                ? "bg-green-100 text-green-800 border border-green-200"
+                : "bg-orange-100 text-orange-800 border border-orange-200"
+            }`}
+          >
+            {task.status === "completed" ? "Completed" : "Pending"}
+          </span>
         </div>
+
         {task.description && (
-          <p className="text-gray-300 text-xs mb-4 line-clamp-3 leading-relaxed">
+          <p className="text-gray-300 text-sm leading-relaxed mb-4 line-clamp-2">
             {task.description}
           </p>
         )}
-        <div className="flex items-center justify-between">
-          <div className="flex items-center space-x-2">
-            <div className="w-6 h-6 bg-indigo-600 rounded-full flex items-center justify-center">
-              <span className="text-white text-xs font-medium">
-                {task.user?.name?.charAt(0)?.toUpperCase() ||
-                  task.user?.avatar ||
-                  "U"}
-              </span>
-            </div>
-            <span className="text-gray-400 text-xs">
-              {task.user?.name || "Unknown User"}
+
+        {/* User Info */}
+        <div className="flex items-center space-x-2 mb-4 sm:mb-0">
+          <div className="w-8 h-8 bg-indigo-600 rounded-full flex items-center justify-center flex-shrink-0">
+            <span className="text-white text-sm font-medium">
+              {task.user?.name?.charAt(0)?.toUpperCase() || "U"}
             </span>
           </div>
-          <div className="text-xs text-gray-500">
-            {new Date(task.updatedAt).toLocaleDateString("en-US", {
-              month: "short",
-              day: "numeric",
-              year: "numeric",
-            })}
+          <div className="min-w-0">
+            <span className="text-gray-400 text-sm block truncate">
+              {task.user?.name || "Unknown User"}
+            </span>
+            <p className="text-xs text-gray-500">
+              Created:{" "}
+              {new Date(task.createdAt).toLocaleDateString("en-US", {
+                month: "short",
+                day: "numeric",
+                year: "numeric",
+              })}
+            </p>
           </div>
         </div>
       </div>
-    )}
-  </Draggable>
+
+      {/* Actions */}
+      <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4">
+        {/* Toggle Switch */}
+        <div className="order-2 sm:order-1">
+          <ToggleSwitch
+            checked={task.status === "completed"}
+            onChange={() => onToggleStatus(task)}
+          />
+        </div>
+
+        {/* Action Buttons */}
+        <div className="flex items-center space-x-2 order-1 sm:order-2">
+          <button
+            onClick={() => onViewDetails(task._id)}
+            className="text-gray-400 hover:text-green-400 p-2 rounded-lg transition-colors duration-200 hover:bg-gray-700/50"
+            title="View Details"
+          >
+            <Eye className="w-4 h-4" />
+          </button>
+          <button
+            onClick={() => onEdit(task)}
+            className="text-gray-400 hover:text-blue-400 p-2 rounded-lg transition-colors duration-200 hover:bg-gray-700/50"
+            title="Edit Task"
+          >
+            <Edit className="w-4 h-4" />
+          </button>
+          <button
+            onClick={() => onDelete(task._id)}
+            className="text-gray-400 hover:text-red-400 p-2 rounded-lg transition-colors duration-200 hover:bg-gray-700/50"
+            title="Delete Task"
+          >
+            <Trash2 className="w-4 h-4" />
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
 );
+
 export default TaskCard;

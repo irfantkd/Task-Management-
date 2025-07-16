@@ -2,7 +2,7 @@ import { useRoutes } from "react-router-dom";
 import { Login } from "../auth/Login";
 import AppLayout from "../layout/AppLayout";
 import AuthLayout from "../layout/AuthLayout";
-import Dashboard from "../pages/kanban-board/KanbanBoard";
+import Dashboard from "../pages/dashboard/Dashboard";
 import Register from "../auth/Register";
 import { DASHBOARD, LOGIN, REGISTER } from "./RoutesConstent";
 import ProtectedRoute from "../protected-Routes/ProtectedRoutes";

@@ -25,7 +25,7 @@ const ProtectedRoute = ({ children }) => {
           body: { token },
         });
 
-        if (response?.error?.data?.error) {
+        if (response?.data?.error) {
           throw new Error("Invalid token");
         }
       } catch (error) {
@@ -37,8 +37,6 @@ const ProtectedRoute = ({ children }) => {
 
     verifyToken();
   }, [token, dispatch, navigate, verifyTokenAPI]);
-
-  // if (loading) return null;
 
   if (!isAuthenticated) {
     return <Navigate to="/auth/login" replace />;

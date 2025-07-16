@@ -1,6 +1,5 @@
 import { useState, useEffect, useMemo } from "react";
-import { DragDropContext } from "@adaptabletools/react-beautiful-dnd";
-import { Plus, Clock, CheckCircle, AlertCircle } from "lucide-react";
+import { Plus, Clock, AlertCircle } from "lucide-react";
 import {
   useGetQuery,
   usePostMutation,
@@ -8,18 +7,21 @@ import {
   useDeleteMutation,
 } from "../../service/apiService";
 import TaskModal from "../../components/TaskModal";
-import Column from "../../components/Column";
-import SearchAndFilter from "../../components/SearchAndFilter";
-import Statistics from "../../components/Statistics";
 import TaskDetailsModal from "../../components/TaskDetailsModal";
 import DeleteConfirmationModal from "../../components/DeleteConfirmationModal";
-// Loading Component
+import Statistics from "../../components/Statistics";
+import SearchAndFilter from "../../components/SearchAndFilter";
+import TaskCard from "../../components/TaskCard";
+
 const LoadingSpinner = () => (
-  <div className="flex items-center justify-center min-h-[200px]">
-    <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-purple-500"></div>
+  <div className="flex items-center justify-center min-h-[400px]">
+    <div className="text-center">
+      <div className="animate-spin rounded-full h-16 w-16 border-b-2 border-purple-500 mx-auto mb-4"></div>
+      <p className="text-gray-400 text-lg">Loading your tasks...</p>
+    </div>
   </div>
 );
-// Error Component
+
 const ErrorMessage = ({ error, onRetry }) => (
   <div className="bg-red-900/20 border border-red-500 rounded-lg p-4 mb-6">
     <div className="flex items-center space-x-2">
@@ -35,7 +37,8 @@ const ErrorMessage = ({ error, onRetry }) => (
     </button>
   </div>
 );
-const KanbanBoard = () => {
+
+const TaskManagement = () => {
   const [searchTerm, setSearchTerm] = useState("");
   const [filterStatus, setFilterStatus] = useState("all");
   const [showModal, setShowModal] = useState(false);
@@ -45,7 +48,7 @@ const KanbanBoard = () => {
   const [viewingTaskId, setViewingTaskId] = useState(null);
   const [taskToDelete, setTaskToDelete] = useState(null);
   const [filters, setFilters] = useState({});
-  // API queries and mutations
+
   const {
     data: tasksResponse,
     isLoading: loading,
@@ -55,11 +58,13 @@ const KanbanBoard = () => {
     path: "/task/get",
     params: filters,
   });
+
   const [createTaskMutation, { isLoading: isCreating }] = usePostMutation();
   const [updateTaskMutation, { isLoading: isUpdating }] = usePutMutation();
   const [deleteTaskMutation, { isLoading: isDeleting }] = useDeleteMutation();
-  // Extract tasks from response
+
   const [tasks, setTasks] = useState([]);
+
   const tasksData = useMemo(() => {
     if (tasksResponse?.data) {
       return Array.isArray(tasksResponse.data)
@@ -68,21 +73,24 @@ const KanbanBoard = () => {
     }
     return [];
   }, [tasksResponse]);
-  // Update tasks state when API data changes
+
   useEffect(() => {
-    setTasks(tasksData);
-  }, [tasksData]);
-  // Update filters when search or filter changes
+    if (tasksData.length > 0 || (tasksResponse && !loading)) {
+      setTasks(tasksData);
+    }
+  }, [tasksData, tasksResponse, loading]);
+
   useEffect(() => {
     const timeoutId = setTimeout(() => {
       const newFilters = {};
       if (searchTerm) newFilters.search = searchTerm;
       if (filterStatus !== "all") newFilters.status = filterStatus;
       setFilters(newFilters);
-    }, 300); // Debounce search
+    }, 300);
+
     return () => clearTimeout(timeoutId);
   }, [searchTerm, filterStatus]);
-  // Filter tasks for display
+
   const filteredTasks = useMemo(() => {
     return tasks.filter((task) => {
       const matchesSearch =
@@ -94,15 +102,7 @@ const KanbanBoard = () => {
       return matchesSearch && matchesFilter;
     });
   }, [tasks, searchTerm, filterStatus]);
-  const pendingTasks = useMemo(
-    () => filteredTasks.filter((task) => task.status === "pending"),
-    [filteredTasks]
-  );
-  const completedTasks = useMemo(
-    () => filteredTasks.filter((task) => task.status === "completed"),
-    [filteredTasks]
-  );
-  // Calculate statistics
+
   const stats = useMemo(() => {
     const total = tasks.length;
     const pending = tasks.filter((task) => task.status === "pending").length;
@@ -111,62 +111,66 @@ const KanbanBoard = () => {
     ).length;
     return { total, pending, completed };
   }, [tasks]);
-  // Error handling
+
   const error = fetchError?.data?.message || fetchError?.message || null;
+
   const handleOpenModal = (task = null) => {
     setEditingTask(task);
     setShowModal(true);
   };
+
   const handleCloseModal = () => {
     setShowModal(false);
     setEditingTask(null);
   };
+
   const handleOpenDetailsModal = (taskId) => {
     setViewingTaskId(taskId);
     setShowDetailsModal(true);
   };
+
   const handleCloseDetailsModal = () => {
     setShowDetailsModal(false);
     setViewingTaskId(null);
   };
+
   const handleOpenDeleteModal = (taskId) => {
     const task = tasks.find((t) => t._id === taskId);
     setTaskToDelete(task);
     setShowDeleteModal(true);
   };
+
   const handleCloseDeleteModal = () => {
     setShowDeleteModal(false);
     setTaskToDelete(null);
   };
+
   const handleSubmitTask = async (formData) => {
     try {
       if (editingTask) {
-        // Update existing task
         await updateTaskMutation({
           path: `/task/update/${editingTask._id}`,
           body: formData,
         }).unwrap();
       } else {
-        // Create new task
         await createTaskMutation({
           path: "/task/create",
           body: formData,
         }).unwrap();
       }
-      // Refetch tasks to get updated data
       refetchTasks();
       handleCloseModal();
     } catch (error) {
       console.error("Failed to save task:", error);
-      // You might want to show a toast notification here
     }
   };
+
   const handleDeleteTask = async (taskId) => {
     if (taskId) {
-      // Open the delete modal instead of browser alert
       handleOpenDeleteModal(taskId);
     }
   };
+
   const handleConfirmDelete = async () => {
     if (!taskToDelete) return;
     try {
@@ -179,62 +183,33 @@ const KanbanBoard = () => {
       console.error("Failed to delete task:", error);
     }
   };
-  // Handle drag end - Same logic as your working project
-  const handleDragEnd = async (result) => {
-    const { source, destination } = result;
-    if (!destination) return;
-    if (
-      source.droppableId === destination.droppableId &&
-      source.index === destination.index
-    ) {
-      return;
-    }
-    // Create columns object similar to your working project
-    const columns = {
-      pending: pendingTasks,
-      completed: completedTasks,
-    };
-    const draggedTask = columns[source.droppableId][source.index];
-    const newSourceColumn = Array.from(columns[source.droppableId]);
-    newSourceColumn.splice(source.index, 1);
-    const newDestinationColumn = Array.from(columns[destination.droppableId]);
-    newDestinationColumn.splice(destination.index, 0, draggedTask);
-    // Only update status if moving between different columns
-    if (source.droppableId !== destination.droppableId) {
-      draggedTask.status = destination.droppableId;
-    }
-    // Update the tasks state to reflect the new arrangement
-    const newTasks = tasks.map((task) => {
-      if (task._id === draggedTask._id) {
-        return {
-          ...task,
-          status: destination.droppableId,
-        };
-      }
-      return task;
-    });
-    // Optimistically update the state
-    setTasks(newTasks);
-    // Only make API call if moving between different columns
-    if (source.droppableId !== destination.droppableId) {
-      try {
-        await updateTaskMutation({
-          path: `/task/update/${draggedTask._id}`,
-          body: {
-            ...draggedTask,
-            status: destination.droppableId,
-          },
-        }).unwrap();
-        // Refetch to ensure consistency
-        refetchTasks();
-      } catch (error) {
-        console.error("There was an error updating the task status!", error);
-        // Revert on error
-        refetchTasks();
-      }
+
+  const handleToggleStatus = async (task) => {
+    const newStatus = task.status === "completed" ? "pending" : "completed";
+    try {
+      setTasks((prevTasks) =>
+        prevTasks.map((t) =>
+          t._id === task._id ? { ...t, status: newStatus } : t
+        )
+      );
+
+      await updateTaskMutation({
+        path: `/task/update/${task._id}`,
+        body: { ...task, status: newStatus },
+      }).unwrap();
+
+      refetchTasks();
+    } catch (error) {
+      console.error("Failed to update task status:", error);
+      setTasks((prevTasks) =>
+        prevTasks.map((t) =>
+          t._id === task._id ? { ...t, status: task.status } : t
+        )
+      );
     }
   };
-  if (loading && tasks.length === 0) {
+
+  if (loading) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900 p-4">
         <div className="max-w-7xl mx-auto">
@@ -243,44 +218,53 @@ const KanbanBoard = () => {
       </div>
     );
   }
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900 p-4">
       <div className="max-w-7xl mx-auto">
-        {/* Header */}
-        <div className="mb-8">
-          <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
-            <div>
-              <h1 className="text-4xl font-bold text-white mb-2">
-                Task Management
+        <div className="mb-6 sm:mb-8">
+          <div className="flex flex-col gap-4">
+            <div className="text-center sm:text-left">
+              <h1 className="text-xl sm:text-2xl lg:text-3xl font-bold text-white mb-2">
+                Task Management System
               </h1>
-              <p className="text-gray-300 text-md">
-                Organize, track, and complete your tasks efficiently
+              <p className="text-gray-300 text-base sm:text-md">
+                Create, organize, and track your tasks efficiently
               </p>
             </div>
-            <div className="flex items-center space-x-4">
-              <Statistics
-                totalTasks={stats.total}
-                pendingTasks={stats.pending}
-                completedTasks={stats.completed}
-              />
-              <button
-                onClick={() => handleOpenModal()}
-                disabled={isCreating}
-                className="bg-indigo-600 text-white px-4 py-2 rounded-lg hover:from-purple-700 hover:to-blue-700 transition-all duration-200 transform hover:scale-105 shadow-lg font-medium flex items-center space-x-2 disabled:opacity-50 disabled:cursor-not-allowed"
-              >
-                <Plus className="w-5 h-5" />
-                <span>{isCreating ? "Creating..." : "Add Task"}</span>
-              </button>
+
+            <div className="flex flex-col sm:flex-row items-center gap-3 sm:gap-4">
+              <div className="w-full sm:w-auto flex-1">
+                <Statistics
+                  totalTasks={stats.total}
+                  pendingTasks={stats.pending}
+                  completedTasks={stats.completed}
+                />
+              </div>
+
+              <div className="w-full sm:w-auto">
+                <button
+                  onClick={() => handleOpenModal()}
+                  disabled={isCreating}
+                  className="bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-2 rounded-lg transition-all duration-200 transform hover:scale-105 shadow-lg font-medium flex items-center justify-center space-x-2 disabled:opacity-50 disabled:cursor-not-allowed w-full sm:w-auto whitespace-nowrap"
+                >
+                  <Plus className="w-5 h-5" />
+                  <span>{isCreating ? "Creating..." : "Add New Task"}</span>
+                </button>
+              </div>
             </div>
           </div>
         </div>
+
         {error && <ErrorMessage error={error} onRetry={refetchTasks} />}
+
         <SearchAndFilter
           searchTerm={searchTerm}
           setSearchTerm={setSearchTerm}
           filterStatus={filterStatus}
           setFilterStatus={setFilterStatus}
         />
+
         {isUpdating && (
           <div className="fixed inset-0 bg-black/20 backdrop-blur-sm flex items-center justify-center z-40">
             <div className="bg-gray-800 border border-gray-700 rounded-lg p-4 flex items-center space-x-3">
@@ -289,31 +273,35 @@ const KanbanBoard = () => {
             </div>
           </div>
         )}
-        <DragDropContext onDragEnd={handleDragEnd}>
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-            <Column
-              title="Pending Tasks"
-              status="pending"
-              icon={Clock}
-              tasks={pendingTasks}
-              gradient="from-orange-600 to-red-600"
-              onEditTask={handleOpenModal}
-              onDeleteTask={handleDeleteTask}
-              onViewDetails={handleOpenDetailsModal}
-            />
-            <Column
-              title="Completed Tasks"
-              status="completed"
-              icon={CheckCircle}
-              tasks={completedTasks}
-              gradient="bg-green-600"
-              onEditTask={handleOpenModal}
-              onDeleteTask={handleDeleteTask}
-              onViewDetails={handleOpenDetailsModal}
-            />
-          </div>
-        </DragDropContext>
-        {/* Task Modal */}
+
+        {/* Task List */}
+        <div className="space-y-4">
+          {filteredTasks.length === 0 && !loading ? (
+            <div className="text-center py-12 sm:py-16">
+              <Clock className="w-12 h-12 sm:w-16 sm:h-16 text-gray-600 mx-auto mb-4 opacity-50" />
+              <p className="text-gray-500 text-lg sm:text-xl mb-2">
+                No tasks found
+              </p>
+              <p className="text-gray-600 text-sm">
+                {searchTerm || filterStatus !== "all"
+                  ? "Try adjusting your search or filter criteria"
+                  : "Create your first task to get started"}
+              </p>
+            </div>
+          ) : (
+            filteredTasks.map((task) => (
+              <TaskCard
+                key={task._id}
+                task={task}
+                onEdit={handleOpenModal}
+                onDelete={handleDeleteTask}
+                onViewDetails={handleOpenDetailsModal}
+                onToggleStatus={handleToggleStatus}
+              />
+            ))
+          )}
+        </div>
+
         <TaskModal
           isOpen={showModal}
           onClose={handleCloseModal}
@@ -321,13 +309,13 @@ const KanbanBoard = () => {
           onSubmit={handleSubmitTask}
           isEditing={!!editingTask}
         />
-        {/* Task Details Modal */}
+
         <TaskDetailsModal
           isOpen={showDetailsModal}
           onClose={handleCloseDetailsModal}
           taskId={viewingTaskId}
         />
-        {/* Delete Confirmation Modal */}
+
         <DeleteConfirmationModal
           isOpen={showDeleteModal}
           onClose={handleCloseDeleteModal}
@@ -339,4 +327,5 @@ const KanbanBoard = () => {
     </div>
   );
 };
-export default KanbanBoard;
+
+export default TaskManagement;

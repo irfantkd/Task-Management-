@@ -22,7 +22,6 @@ const TaskModal = ({ isOpen, onClose, task, onSubmit, isEditing }) => {
     }
   );
 
-  // Initialize form data
   useEffect(() => {
     if (isEditing && taskDetailsResponse?.data) {
       const taskDetails = taskDetailsResponse.data;
@@ -32,7 +31,6 @@ const TaskModal = ({ isOpen, onClose, task, onSubmit, isEditing }) => {
         status: taskDetails.status || "pending",
       });
     } else if (!isEditing) {
-      // Reset form for new task
       setFormData({
         title: "",
         description: "",
@@ -41,7 +39,6 @@ const TaskModal = ({ isOpen, onClose, task, onSubmit, isEditing }) => {
     }
   }, [isEditing, taskDetailsResponse, isOpen]);
 
-  // Reset form when modal closes
   useEffect(() => {
     if (!isOpen) {
       setFormData({
@@ -65,7 +62,6 @@ const TaskModal = ({ isOpen, onClose, task, onSubmit, isEditing }) => {
 
   if (!isOpen) return null;
 
-  // Loading state for fetching task details
   if (isEditing && isLoadingTask) {
     return (
       <div className="fixed inset-0 bg-slate-900/80 backdrop-blur-sm flex items-center justify-center z-50 p-4">
@@ -79,7 +75,6 @@ const TaskModal = ({ isOpen, onClose, task, onSubmit, isEditing }) => {
     );
   }
 
-  // Error state for fetching task details
   if (isEditing && taskError) {
     return (
       <div className="fixed inset-0 bg-slate-900/80 backdrop-blur-sm flex items-center justify-center z-50 p-4">
@@ -128,7 +123,6 @@ const TaskModal = ({ isOpen, onClose, task, onSubmit, isEditing }) => {
           </button>
         </div>
 
-        {/* Form Section */}
         <form onSubmit={handleSubmit} className="space-y-4">
           <div>
             <label className="block text-sm font-medium text-slate-200 mb-2">

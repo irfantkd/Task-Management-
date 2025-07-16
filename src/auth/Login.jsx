@@ -6,7 +6,6 @@ import "react-toastify/dist/ReactToastify.css";
 import { Link, useNavigate } from "react-router-dom";
 import { login } from "../features/authSlice";
 import { useDispatch, useSelector } from "react-redux";
-// import headerImage from "../../assets/images/header-image2.jpg";
 import Loader from "../ui/Loader";
 
 export function Login() {
@@ -39,7 +38,6 @@ export function Login() {
         body: values,
         method: "POST",
       });
-      console.log("response", response);
 
       if (response?.data?.token) {
         await dispatch(login(response));

@@ -13,7 +13,6 @@ const baseQuery = fetchBaseQuery({
     return headers;
   },
 });
-// API Slice
 export const apiSlice = createApi({
   reducerPath: "api",
   baseQuery: baseQuery,
@@ -41,7 +40,6 @@ export const apiSlice = createApi({
         }
       },
     }),
-    // POST endpoint
     post: builder.mutation({
       query: ({ path, body }) => ({
         url: path,
@@ -50,7 +48,6 @@ export const apiSlice = createApi({
       }),
       invalidatesTags: ["KeyName"],
     }),
-    // PUT endpoint
     put: builder.mutation({
       query: ({ path, body }) => ({
         url: path,
@@ -59,7 +56,6 @@ export const apiSlice = createApi({
       }),
       invalidatesTags: ["KeyName"],
     }),
-    // DELETE endpoint
     delete: builder.mutation({
       query: ({ path }) => ({
         url: path,

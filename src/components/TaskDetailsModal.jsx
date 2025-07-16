@@ -12,7 +12,6 @@ import {
 import { useGetQuery } from "../service/apiService";
 
 const TaskDetailsModal = ({ isOpen, onClose, taskId }) => {
-  // Fetch task details
   const {
     data: taskDetailsResponse,
     isLoading: isLoadingTask,
@@ -28,7 +27,6 @@ const TaskDetailsModal = ({ isOpen, onClose, taskId }) => {
 
   if (!isOpen) return null;
 
-  // Loading state
   if (isLoadingTask) {
     return (
       <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4">
@@ -44,7 +42,6 @@ const TaskDetailsModal = ({ isOpen, onClose, taskId }) => {
     );
   }
 
-  // Error state
   if (taskError) {
     return (
       <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4">
@@ -82,7 +79,6 @@ const TaskDetailsModal = ({ isOpen, onClose, taskId }) => {
 
   if (!taskDetails) return null;
 
-  // Status badge component
   const StatusBadge = ({ status }) => {
     const isCompleted = status === "completed";
     return (
@@ -106,7 +102,6 @@ const TaskDetailsModal = ({ isOpen, onClose, taskId }) => {
   return (
     <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4">
       <div className="bg-gray-800/90 border border-gray-700 rounded-2xl p-6 w-full max-w-3xl backdrop-blur-sm max-h-[90vh] overflow-y-auto">
-        {/* Header */}
         <div className="flex items-center justify-between mb-6">
           <h2 className="text-2xl font-bold text-white">Task Details</h2>
           <button
@@ -117,7 +112,6 @@ const TaskDetailsModal = ({ isOpen, onClose, taskId }) => {
           </button>
         </div>
 
-        {/* Task Title and Status */}
         <div className="mb-6">
           <div className="flex items-start justify-between mb-4">
             <h3 className="text-xl font-semibold text-white leading-tight pr-4">
@@ -126,7 +120,6 @@ const TaskDetailsModal = ({ isOpen, onClose, taskId }) => {
             <StatusBadge status={taskDetails.status} />
           </div>
 
-          {/* Task Description */}
           {taskDetails.description && (
             <div className="bg-gray-700/30 border border-gray-600 rounded-lg p-4">
               <div className="flex items-center mb-3">
@@ -140,9 +133,7 @@ const TaskDetailsModal = ({ isOpen, onClose, taskId }) => {
           )}
         </div>
 
-        {/* Task Information Grid */}
         <div className="gap-6 mb-6">
-          {/* Task Dates */}
           <div className="bg-gray-700/30 border border-gray-600 rounded-lg p-4">
             <div className="flex items-center mb-3">
               <Calendar className="w-5 h-5 text-gray-400 mr-2" />
@@ -187,7 +178,6 @@ const TaskDetailsModal = ({ isOpen, onClose, taskId }) => {
           </div>
         </div>
 
-        {/* Action Buttons */}
         <div className="flex justify-end space-x-3">
           <button
             onClick={onClose}

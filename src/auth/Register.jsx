@@ -17,21 +17,18 @@ export function Register() {
   const validate = (values) => {
     const errors = {};
 
-    // Name validation
     if (!values.name) {
       errors.name = "Name is required";
     } else if (values.name.length < 2) {
       errors.name = "Name must be at least 2 characters long";
     }
 
-    // Email validation
     if (!values.email) {
       errors.email = "Email is required";
     } else if (!/\S+@\S+\.\S+/.test(values.email)) {
       errors.email = "Invalid email address";
     }
 
-    // Password validation
     if (!values.password) {
       errors.password = "Password is required";
     } else if (values.password.length < 6) {
@@ -41,7 +38,6 @@ export function Register() {
         "Password must contain at least one uppercase letter, one lowercase letter, and one number";
     }
 
-    // Confirm password validation
     if (!values.confirmPassword) {
       errors.confirmPassword = "Please confirm your password";
     } else if (values.password !== values.confirmPassword) {
