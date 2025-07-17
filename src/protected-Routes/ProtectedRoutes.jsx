@@ -25,7 +25,7 @@ const ProtectedRoute = ({ children }) => {
           body: { token },
         });
 
-        if (response?.error.data?.error) {
+        if (response?.error?.data?.error) {
           throw new Error("Invalid token");
         }
       } catch (error) {
